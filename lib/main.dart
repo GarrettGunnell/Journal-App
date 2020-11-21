@@ -1,55 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool themeState = prefs.getBool("dark");
+  runApp(new MyApp(themeState, prefs));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  bool themeState;
+  SharedPreferences prefs;
+
+  MyApp(this.themeState, this.prefs);
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        brightness: widget.themeState ? Brightness.dark : Brightness.light
       ),
-      home: MyHomePage(title: 'Welcome'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  bool darkTheme = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      endDrawer: Drawer(
-        child: AppBar(
-          title: Text("Dark Theme"),
-          actions: [Switch(
-            value: darkTheme,
-            onChanged: (value) {
-              setState(() {
-                darkTheme = value;
-              });
-            }
-          )],
+      home: Scaffold(
+        appBar: AppBar(title: Text("Welcome")),
+        endDrawer: Drawer(
+          child: AppBar(
+            title: Text("Dark Theme"),
+            actions: [Switch(
+              value: widget.themeState,
+              onChanged: (value) {
+                setState(() {
+                  widget.themeState = value;
+                  widget.prefs.setBool("dark", value);
+                });
+              }
+            )],
+          ),
         ),
-      ),
-      body: Center(
+        body: Center(
 
-      ),
+        ),
+      )
     );
   }
 }
