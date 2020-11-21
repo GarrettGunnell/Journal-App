@@ -4,18 +4,36 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  bool themeState = prefs.getBool("dark");
-  runApp(new MyApp(themeState, prefs));
+  bool darkTheme = prefs.getBool("dark");
+  runApp(new MyApp(darkTheme, prefs));
 }
 
 class MyApp extends StatefulWidget {
-  bool themeState;
+  bool darkTheme;
   SharedPreferences prefs;
 
-  MyApp(this.themeState, this.prefs);
+  MyApp(this.darkTheme, this.prefs);
 
   @override
   _MyAppState createState() => _MyAppState();
+}
+
+Widget preferenceDrawer(MyApp app, _MyAppState state) {
+  return 
+    Drawer(
+      child: AppBar(
+      title: Text("Dark Theme"),
+      actions: [Switch(
+        value: app.darkTheme,
+        onChanged: (value) {
+          state.setState(() {
+            app.darkTheme = value;
+            app.prefs.setBool("dark", value);
+          });
+        }
+      )],
+    ),
+  );
 }
 
 class _MyAppState extends State<MyApp> {
@@ -25,24 +43,11 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        brightness: widget.themeState ? Brightness.dark : Brightness.light
+        brightness: widget.darkTheme ? Brightness.dark : Brightness.light
       ),
       home: Scaffold(
         appBar: AppBar(title: Text("Welcome")),
-        endDrawer: Drawer(
-          child: AppBar(
-            title: Text("Dark Theme"),
-            actions: [Switch(
-              value: widget.themeState,
-              onChanged: (value) {
-                setState(() {
-                  widget.themeState = value;
-                  widget.prefs.setBool("dark", value);
-                });
-              }
-            )],
-          ),
-        ),
+        endDrawer: preferenceDrawer(widget, this),
         body: Center(
 
         ),
