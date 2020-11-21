@@ -28,12 +28,24 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool darkTheme = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+      appBar: AppBar(title: Text(widget.title)),
+      endDrawer: Drawer(
+        child: AppBar(
+          title: Text("Dark Theme"),
+          actions: [Switch(
+            value: darkTheme,
+            onChanged: (value) {
+              setState(() {
+                darkTheme = value;
+              });
+            }
+          )],
+        ),
       ),
       body: Center(
 
