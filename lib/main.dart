@@ -18,25 +18,6 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-Widget preferenceDrawer(MyApp app, _MyAppState state) {
-  return 
-    Drawer(
-      child: AppBar(
-        title: Text("Dark Theme"),
-        actions: [Switch(
-          value: app.darkTheme,
-          onChanged: (value) {
-            state.setState(() {
-              app.darkTheme = value;
-              app.prefs.setBool("dark", value);
-            });
-          }
-        )
-      ],
-    ),
-  );
-}
-
 Widget noEntries() {
   return Column(
     mainAxisAlignment: MainAxisAlignment.center,
@@ -56,17 +37,75 @@ class _MyAppState extends State<MyApp> {
         primarySwatch: Colors.blue,
         brightness: widget.darkTheme ? Brightness.dark : Brightness.light
       ),
-      home: Scaffold(
+      initialRoute: '/',
+      routes: {
+        '/': (context) => HomePage(widget, this),
+        '/newEntry': (context) => NewEntry(),
+      }
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  MyApp myApp;
+  _MyAppState materialState;
+
+  HomePage(this.myApp, this.materialState);
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State <HomePage> {
+
+  Widget preferenceDrawer() {
+    return 
+      Drawer(
+        child: AppBar(
+          title: Text("Dark Theme"),
+          actions: [Switch(
+            value: widget.myApp.darkTheme,
+            onChanged: (value) {
+              widget.materialState.setState(() {
+                widget.myApp.darkTheme = value;
+                widget.myApp.prefs.setBool("dark", value);
+              });
+            }
+          )
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
         appBar: AppBar(title: Text("Welcome", textAlign: TextAlign.center), centerTitle: true),
-        endDrawer: preferenceDrawer(widget, this),
+        endDrawer: preferenceDrawer(),
         body: Center(
           child: noEntries()
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: null,
+          onPressed: () { Navigator.pushNamed(context, '/newEntry'); },
           child: Icon(Icons.add)
         ),
-      ),
+      );
+  }
+}
+
+class NewEntry extends StatefulWidget {
+
+  @override
+  _NewEntryState createState() => _NewEntryState();
+}
+
+class _NewEntryState extends State<NewEntry> {
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center()
     );
   }
 }
