@@ -22,17 +22,28 @@ Widget preferenceDrawer(MyApp app, _MyAppState state) {
   return 
     Drawer(
       child: AppBar(
-      title: Text("Dark Theme"),
-      actions: [Switch(
-        value: app.darkTheme,
-        onChanged: (value) {
-          state.setState(() {
-            app.darkTheme = value;
-            app.prefs.setBool("dark", value);
-          });
-        }
-      )],
+        title: Text("Dark Theme"),
+        actions: [Switch(
+          value: app.darkTheme,
+          onChanged: (value) {
+            state.setState(() {
+              app.darkTheme = value;
+              app.prefs.setBool("dark", value);
+            });
+          }
+        )
+      ],
     ),
+  );
+}
+
+Widget noEntries() {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(Icons.book, size: 100),
+      Text("Journal")
+    ]
   );
 }
 
@@ -46,12 +57,16 @@ class _MyAppState extends State<MyApp> {
         brightness: widget.darkTheme ? Brightness.dark : Brightness.light
       ),
       home: Scaffold(
-        appBar: AppBar(title: Text("Welcome")),
+        appBar: AppBar(title: Text("Welcome", textAlign: TextAlign.center), centerTitle: true),
         endDrawer: preferenceDrawer(widget, this),
         body: Center(
-
+          child: noEntries()
         ),
-      )
+        floatingActionButton: FloatingActionButton(
+          onPressed: null,
+          child: Icon(Icons.add)
+        ),
+      ),
     );
   }
 }
