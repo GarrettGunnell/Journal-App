@@ -104,8 +104,47 @@ class _NewEntryState extends State<NewEntry> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: Center()
+      appBar: AppBar(title: Text("New Entry"), centerTitle: true),
+      body: EntryForm()
+    );
+  }
+}
+
+class EntryForm extends StatefulWidget {
+  @override
+  _EntryFormState createState() => _EntryFormState();
+}
+
+class _EntryFormState extends State<EntryForm> {
+  final _formKey = GlobalKey<FormState>();
+
+  Widget createTextField(final name) {
+    return Padding(
+      padding: EdgeInsets.all(10.0),
+      child: TextFormField(
+        decoration: InputDecoration(border: OutlineInputBorder(), labelText: name),
+        validator: (value) {
+          if (value.isEmpty) {
+            return 'Please enter some text';
+          }
+
+          return null;
+        }
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          createTextField('Title'),
+          createTextField('Description'),
+          createTextField('Rating')
+        ],
+      ),
     );
   }
 }
