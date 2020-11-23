@@ -120,7 +120,7 @@ class _EntryFormState extends State<EntryForm> {
 
   Widget createTextField(final name) {
     return Padding(
-      padding: EdgeInsets.all(10.0),
+      padding: EdgeInsets.only(left: 10.0, right: 10.0, top: 10.0),
       child: TextFormField(
         decoration: InputDecoration(border: OutlineInputBorder(), labelText: name),
         validator: (value) {
@@ -142,7 +142,36 @@ class _EntryFormState extends State<EntryForm> {
         children: [
           createTextField('Title'),
           createTextField('Description'),
-          createTextField('Rating')
+          createTextField('Rating'),
+          Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: RaisedButton(
+                    child: Text("Cancel"),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: RaisedButton(
+                    color: Colors.blue,
+                    child: Text("Submit"),
+                    onPressed: () {
+                      if (_formKey.currentState.validate()) {
+                        Scaffold.of(context).showSnackBar(SnackBar(content: Text('Processing Content')));
+                      }
+                    }
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
