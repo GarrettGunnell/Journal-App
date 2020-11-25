@@ -17,3 +17,8 @@ class Entry {
     };
   }
 }
+
+class EntryDataTransfer {
+  String title, description;
+  int rating;
+}

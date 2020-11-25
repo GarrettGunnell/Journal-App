@@ -1,3 +1,4 @@
+import 'package:Journal/journal.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart';
@@ -12,9 +13,10 @@ void main() async {
     join(await getDatabasesPath(), 'journal.sqlite3.db'),
     onCreate: (db, version) {
       return db.execute(
-        "CREATE TABLE journal_entries(id INTEGER PRIMARY KEY, title TEXT, description TEXT, rating INTEGER, date REAL"
+        "CREATE TABLE journal_entries(id INTEGER PRIMARY KEY, title TEXT, description TEXT, rating INTEGER, date REAL)"
         );
     },
+    version: 1,
   );
 
 
@@ -130,6 +132,7 @@ class EntryForm extends StatefulWidget {
 
 class _EntryFormState extends State<EntryForm> {
   final _formKey = GlobalKey<FormState>();
+  EntryDataTransfer formData = new EntryDataTransfer();
 
   Widget createTextField(final name) {
     return Padding(
@@ -138,7 +141,25 @@ class _EntryFormState extends State<EntryForm> {
         decoration: InputDecoration(border: OutlineInputBorder(), labelText: name),
         validator: (value) {
           if (value.isEmpty) {
+            if (name == 'Title') formData.title = null;
+            else if (name == 'Description') formData.description = null;
+            else if (name == 'Rating') formData.rating = null;
             return 'Please enter some text';
+          }
+        
+          if (name == 'Title') formData.title = value;
+          else if (name == 'Description') formData.description = value;
+          else if (name == 'Rating') {
+            int rating;
+            try {
+              rating = int.parse(value);
+            }
+            on FormatException {
+              return 'Please enter a number';
+            }
+
+            if (rating < 1 || 4 < rating) return 'Please enter a number between 1 and 4';
+            formData.rating = rating;
           }
 
           return null;
