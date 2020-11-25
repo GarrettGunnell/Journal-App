@@ -20,14 +20,15 @@ void main() async {
   );
 
 
-  runApp(new MyApp(darkTheme, prefs));
+  runApp(new MyApp(darkTheme, prefs, database));
 }
 
 class MyApp extends StatefulWidget {
   bool darkTheme;
   SharedPreferences prefs;
+  Future<Database> database;
 
-  MyApp(this.darkTheme, this.prefs);
+  MyApp(this.darkTheme, this.prefs, this.database);
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -55,7 +56,7 @@ class _MyAppState extends State<MyApp> {
       initialRoute: '/',
       routes: {
         '/': (context) => HomePage(widget, this),
-        '/newEntry': (context) => NewEntry(),
+        '/newEntry': (context) => NewEntry(widget.database),
       }
     );
   }
@@ -109,6 +110,8 @@ class _HomePageState extends State <HomePage> {
 }
 
 class NewEntry extends StatefulWidget {
+  Future<Database> database;
+  NewEntry(this.database);
 
   @override
   _NewEntryState createState() => _NewEntryState();
@@ -120,12 +123,15 @@ class _NewEntryState extends State<NewEntry> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("New Entry"), centerTitle: true),
-      body: EntryForm()
+      body: EntryForm(widget.database)
     );
   }
 }
 
 class EntryForm extends StatefulWidget {
+  Future<Database> database;
+  EntryForm(this.database);
+
   @override
   _EntryFormState createState() => _EntryFormState();
 }
@@ -196,8 +202,23 @@ class _EntryFormState extends State<EntryForm> {
                   child: RaisedButton(
                     color: Colors.blue,
                     child: Text("Submit"),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState.validate()) {
+                        final Database db = await widget.database;
+                        
+                        Entry newEntry = Entry(
+                          id: 0, 
+                          title: formData.title,
+                          description: formData.description, 
+                          rating: formData.rating, 
+                          date: DateTime.now()
+                        );
+                        
+                        await db.insert(
+                          'journal_entries',
+                          newEntry.toMap(), 
+                        );
+
                         Scaffold.of(context).showSnackBar(SnackBar(content: Text('Processing Content')));
                       }
                     }
