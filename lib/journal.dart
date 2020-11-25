@@ -1,12 +1,9 @@
 class Entry {
-  String title, description, rating;
-  Entry(this.title, this.description, this.rating);
-}
+  int id, rating;
+  String title, description;
+  DateTime date;
 
-class Journal {
-  List<Entry> entries;
-
-  void addEntry(Entry entry) {
-    entries.add(entry);
+  Entry(this.title, this.description, this.rating) {
+    date = new DateTime.now();
   }
 }
