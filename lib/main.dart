@@ -9,26 +9,26 @@ void main() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool darkTheme = prefs.getBool("dark");
 
-  final Future<Database> database = openDatabase(
+  final Database database = await openDatabase(
     join(await getDatabasesPath(), 'journal.sqlite3.db'),
     onCreate: (db, version) {
       return db.execute(
-        "CREATE TABLE journal_entries(id INTEGER PRIMARY KEY, title TEXT, description TEXT, rating INTEGER, date REAL)"
+        "CREATE TABLE journal_entries(id INTEGER PRIMARY KEY, title TEXT, description TEXT, rating INTEGER, date INTEGER)"
         );
     },
     version: 1,
   );
 
-
-  runApp(new MyApp(darkTheme, prefs, database));
+  //await deleteDatabase(join(await getDatabasesPath(), 'journal.sqlite3.db'));
+  await database.close();
+  runApp(new MyApp(darkTheme, prefs));
 }
 
 class MyApp extends StatefulWidget {
   bool darkTheme;
   SharedPreferences prefs;
-  Future<Database> database;
 
-  MyApp(this.darkTheme, this.prefs, this.database);
+  MyApp(this.darkTheme, this.prefs);
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -56,7 +56,7 @@ class _MyAppState extends State<MyApp> {
       initialRoute: '/',
       routes: {
         '/': (context) => HomePage(widget, this),
-        '/newEntry': (context) => NewEntry(widget.database),
+        '/newEntry': (context) => NewEntry(),
       }
     );
   }
@@ -110,8 +110,6 @@ class _HomePageState extends State <HomePage> {
 }
 
 class NewEntry extends StatefulWidget {
-  Future<Database> database;
-  NewEntry(this.database);
 
   @override
   _NewEntryState createState() => _NewEntryState();
@@ -123,14 +121,12 @@ class _NewEntryState extends State<NewEntry> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("New Entry"), centerTitle: true),
-      body: EntryForm(widget.database)
+      body: EntryForm()
     );
   }
 }
 
 class EntryForm extends StatefulWidget {
-  Future<Database> database;
-  EntryForm(this.database);
 
   @override
   _EntryFormState createState() => _EntryFormState();
@@ -204,14 +200,14 @@ class _EntryFormState extends State<EntryForm> {
                     child: Text("Submit"),
                     onPressed: () async {
                       if (_formKey.currentState.validate()) {
-                        final Database db = await widget.database;
+                        final Database db = await openDatabase(join(await getDatabasesPath(), 'journal.sqlite3.db'));
                         
                         Entry newEntry = Entry(
                           id: 0, 
                           title: formData.title,
                           description: formData.description, 
                           rating: formData.rating, 
-                          date: DateTime.now()
+                          date: DateTime.now().millisecondsSinceEpoch,
                         );
                         
                         await db.insert(
@@ -220,6 +216,7 @@ class _EntryFormState extends State<EntryForm> {
                         );
 
                         Scaffold.of(context).showSnackBar(SnackBar(content: Text('Processing Content')));
+                        Navigator.pop(context);
                       }
                     }
                   ),

@@ -3,7 +3,7 @@ class Entry {
   final String title;
   final String description;
   final int rating;
-  final DateTime date;
+  final int date;
 
   Entry({this.id, this.title, this.description, this.rating, this.date});
 
