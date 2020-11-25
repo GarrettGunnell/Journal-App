@@ -7,6 +7,17 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool darkTheme = prefs.getBool("dark");
+
+  final Future<Database> database = openDatabase(
+    join(await getDatabasesPath(), 'journal.sqlite3.db'),
+    onCreate: (db, version) {
+      return db.execute(
+        "CREATE TABLE journal_entries(id INTEGER PRIMARY KEY, title TEXT, description TEXT, rating INTEGER, date REAL"
+        );
+    },
+  );
+
+
   runApp(new MyApp(darkTheme, prefs));
 }
 
