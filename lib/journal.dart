@@ -1,9 +1,19 @@
 class Entry {
-  int id, rating;
-  String title, description;
-  DateTime date;
+  final int id;
+  final String title;
+  final String description;
+  final int rating;
+  final DateTime date;
 
-  Entry(this.title, this.description, this.rating) {
-    date = new DateTime.now();
+  Entry({this.id, this.title, this.description, this.rating, this.date});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'rating': rating,
+      'date': date
+    };
   }
 }
