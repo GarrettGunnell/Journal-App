@@ -9,7 +9,7 @@ void main() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool darkTheme = prefs.getBool("dark");
 
-  //await deleteDatabase(join(await getDatabasesPath(), 'journal.sqlite3.db'));
+  await deleteDatabase(join(await getDatabasesPath(), 'journal.sqlite3.db'));
 
   final Database database = await openDatabase(
     join(await getDatabasesPath(), 'journal.sqlite3.db'),
@@ -31,8 +31,6 @@ void main() async {
       date: maps[i]['date'],
     );
   });
-
-  print(entries.length);
 
   runApp(new MyApp(darkTheme, prefs, database, entries));
 }
@@ -138,7 +136,6 @@ class _HomePageState extends State <HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    print(widget.entries.length);
     return Scaffold(
         appBar: AppBar(title: Text(widget.entries.length < 1 ? "Welcome" : "Entries", textAlign: TextAlign.center), centerTitle: true),
         endDrawer: preferenceDrawer(),
