@@ -9,6 +9,8 @@ void main() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool darkTheme = prefs.getBool("dark");
 
+  //await deleteDatabase(join(await getDatabasesPath(), 'journal.sqlite3.db'));
+
   final Database database = await openDatabase(
     join(await getDatabasesPath(), 'journal.sqlite3.db'),
     onCreate: (db, version) {
@@ -19,16 +21,29 @@ void main() async {
     version: 1,
   );
 
-  //await deleteDatabase(join(await getDatabasesPath(), 'journal.sqlite3.db'));
-  await database.close();
-  runApp(new MyApp(darkTheme, prefs));
+  final List<Map<String, dynamic>> maps = await database.query('journal_entries');
+  List<Entry> entries = List.generate(maps.length, (i) {
+    return Entry(
+      id: maps[i]['id'],
+      description: maps[i]['description'],
+      title: maps[i]['title'],
+      rating: maps[i]['rating'],
+      date: maps[i]['date'],
+    );
+  });
+
+  print(entries.length);
+
+  runApp(new MyApp(darkTheme, prefs, database, entries));
 }
 
 class MyApp extends StatefulWidget {
   bool darkTheme;
   SharedPreferences prefs;
+  Database database;
+  List<Entry> entries;
 
-  MyApp(this.darkTheme, this.prefs);
+  MyApp(this.darkTheme, this.prefs, this.database, this.entries);
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -55,8 +70,8 @@ class _MyAppState extends State<MyApp> {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => HomePage(widget, this),
-        '/newEntry': (context) => NewEntry(),
+        '/': (context) => HomePage(widget, this, widget.database, widget.entries),
+        '/newEntry': (context) => NewEntry(widget.entries),
       }
     );
   }
@@ -65,8 +80,10 @@ class _MyAppState extends State<MyApp> {
 class HomePage extends StatefulWidget {
   MyApp myApp;
   _MyAppState materialState;
+  Database database;
+  List<Entry> entries;
 
-  HomePage(this.myApp, this.materialState);
+  HomePage(this.myApp, this.materialState, this.database, this.entries);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -93,13 +110,42 @@ class _HomePageState extends State <HomePage> {
     );
   }
 
+  List<Widget> displayEntries(BuildContext context) {
+    List<Widget> entryTiles = new List<Widget>();
+
+    widget.entries.forEach((entry) {
+      DateTime date = DateTime.fromMillisecondsSinceEpoch(entry.date);
+      entryTiles.add(
+        InkWell(
+          child: Padding(
+            padding: EdgeInsets.all(5.0),
+            child: Column(
+              children: [
+                SizedBox(child: Text(entry.title, style: Theme.of(context).textTheme.headline4, textAlign: TextAlign.left), width: double.infinity), 
+                SizedBox(child: Text(date.month.toString() + '-' + date.day.toString()), width: double.infinity)
+              ]
+            )
+          ),
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => DisplayEntry(entry)));
+          }
+        )
+      );
+    });
+
+    return entryTiles;
+  }
+
   @override
   Widget build(BuildContext context) {
+    print(widget.entries.length);
     return Scaffold(
-        appBar: AppBar(title: Text("Welcome", textAlign: TextAlign.center), centerTitle: true),
+        appBar: AppBar(title: Text(widget.entries.length < 1 ? "Welcome" : "Entries", textAlign: TextAlign.center), centerTitle: true),
         endDrawer: preferenceDrawer(),
         body: Center(
-          child: noEntries()
+          child: widget.entries.length < 1 ? noEntries() : ListView(
+            children: displayEntries(context),
+          ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () { Navigator.pushNamed(context, '/newEntry'); },
@@ -110,6 +156,8 @@ class _HomePageState extends State <HomePage> {
 }
 
 class NewEntry extends StatefulWidget {
+  List<Entry> entries;
+  NewEntry(this.entries);
 
   @override
   _NewEntryState createState() => _NewEntryState();
@@ -121,12 +169,14 @@ class _NewEntryState extends State<NewEntry> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("New Entry"), centerTitle: true),
-      body: EntryForm()
+      body: EntryForm(widget.entries)
     );
   }
 }
 
 class EntryForm extends StatefulWidget {
+  List<Entry> entries;
+  EntryForm(this.entries);
 
   @override
   _EntryFormState createState() => _EntryFormState();
@@ -203,7 +253,7 @@ class _EntryFormState extends State<EntryForm> {
                         final Database db = await openDatabase(join(await getDatabasesPath(), 'journal.sqlite3.db'));
                         
                         Entry newEntry = Entry(
-                          id: 0, 
+                          id: widget.entries.length + 1, 
                           title: formData.title,
                           description: formData.description, 
                           rating: formData.rating, 
@@ -215,8 +265,10 @@ class _EntryFormState extends State<EntryForm> {
                           newEntry.toMap(), 
                         );
 
+                        widget.entries.add(newEntry);
                         Scaffold.of(context).showSnackBar(SnackBar(content: Text('Processing Content')));
                         Navigator.pop(context);
+                        Navigator.pushNamed(context, '/');
                       }
                     }
                   ),
@@ -226,6 +278,28 @@ class _EntryFormState extends State<EntryForm> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class DisplayEntry extends StatelessWidget {
+  final Entry entry;
+  DisplayEntry(this.entry);
+
+  @override
+  Widget build(BuildContext context) {
+    DateTime date = new DateTime.fromMillisecondsSinceEpoch(entry.date);
+    return Scaffold(
+      appBar: AppBar(title: Text(date.month.toString() + '-' + date.day.toString()), centerTitle: true,),
+      body: Padding(
+      padding: EdgeInsets.all(5.0),
+      child: Column(
+        children: [
+          SizedBox(child: Text(entry.title, style: Theme.of(context).textTheme.headline4, textAlign: TextAlign.left), width: double.infinity), 
+          SizedBox(child: Text(entry.description), width: double.infinity)
+        ]
+      )
+      )
     );
   }
 }
